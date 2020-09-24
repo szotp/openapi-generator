@@ -52,17 +52,6 @@ public class DartDioClientCodegen extends DartClientCodegen {
     private static final String CLIENT_NAME = "clientName";
     public static final String DATE_LIBRARY = "dateLibrary";
 
-    private static Set<String> modelToIgnore = new HashSet<>();
-
-    static {
-        modelToIgnore.add("datetime");
-        modelToIgnore.add("map");
-        modelToIgnore.add("object");
-        modelToIgnore.add("list");
-        modelToIgnore.add("file");
-        modelToIgnore.add("uint8list");
-    }
-
     private static final String SERIALIZATION_JSON = "json";
 
     private boolean nullableFields = true;
@@ -273,33 +262,6 @@ public class DartDioClientCodegen extends DartClientCodegen {
     }
 
     @Override
-    public Map<String, Object> postProcessModels(Map<String, Object> objs) {
-        objs = super.postProcessModels(objs);
-        List<Object> models = (List<Object>) objs.get("models");
-        ProcessUtils.addIndexToProperties(models, 1);
-
-        for (Object _mo : models) {
-            Map<String, Object> mo = (Map<String, Object>) _mo;
-            Set<String> modelImports = new HashSet<>();
-            CodegenModel cm = (CodegenModel) mo.get("model");
-            for (String modelImport : cm.imports) {
-                if (importMapping.containsKey(modelImport)) {
-                    modelImports.add(importMapping.get(modelImport));
-                } else {
-                    if (!modelToIgnore.contains(modelImport.toLowerCase(Locale.ROOT))) {
-                        modelImports.add("package:" + pubName + "/model/" + underscore(modelImport) + ".dart");
-                    }
-                }
-            }
-
-            cm.imports = modelImports;
-            boolean hasVars =  cm.vars.size() > 0;
-            cm.vendorExtensions.put("x-has-vars", hasVars);
-        }
-        return objs;
-    }
-
-    @Override
     public void postProcessModelProperty(CodegenModel model, CodegenProperty property) {
         if (nullableFields) {
             property.isNullable = true;
@@ -333,9 +295,6 @@ public class DartDioClientCodegen extends DartClientCodegen {
         Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
         List<CodegenOperation> operationList = (List<CodegenOperation>) operations.get("operation");
 
-        Set<String> modelImports = new HashSet<>();
-        Set<String> fullImports = new HashSet<>();
-
         for (CodegenOperation op : operationList) {
             op.httpMethod = op.httpMethod.toLowerCase(Locale.ROOT);
             boolean isJson = true; //default to JSON
@@ -363,26 +322,7 @@ public class DartDioClientCodegen extends DartClientCodegen {
             op.vendorExtensions.put("x-is-json", isJson);
             op.vendorExtensions.put("x-is-form", isForm);
             op.vendorExtensions.put("x-is-multipart", isMultipart);
-
-            if (op.getHasFormParams()) {
-                fullImports.add("package:" + pubName + "/api_util.dart");
-            }
-
-            Set<String> imports = new HashSet<>();
-            for (String item : op.imports) {
-                if (!modelToIgnore.contains(item.toLowerCase(Locale.ROOT))) {
-                    imports.add(underscore(item));
-                } else if (item.equalsIgnoreCase("Uint8List")) {
-                    fullImports.add("dart:typed_data");
-                }
-            }
-            modelImports.addAll(imports);
-            op.imports = imports;
-
         }
-
-        objs.put("modelImports", modelImports);
-        objs.put("fullImports", fullImports);
 
         return objs;
     }

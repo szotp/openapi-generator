@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.meta.features.*;
 import org.openapitools.codegen.utils.ModelUtils;
+import org.openapitools.codegen.utils.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,6 +65,17 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
     protected String modelDocPath = "doc" + File.separator;
     protected String apiTestPath = "test" + File.separator;
     protected String modelTestPath = "test" + File.separator;
+
+    private static Set<String> modelToIgnore = new HashSet<>();
+
+    static {
+        modelToIgnore.add("datetime");
+        modelToIgnore.add("map");
+        modelToIgnore.add("object");
+        modelToIgnore.add("list");
+        modelToIgnore.add("file");
+        modelToIgnore.add("uint8list");
+    }
 
     public DartClientCodegen() {
         super();
@@ -278,6 +290,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("api_exception.mustache", libFolder, "api_exception.dart"));
         supportingFiles.add(new SupportingFile("api_helper.mustache", libFolder, "api_helper.dart"));
         supportingFiles.add(new SupportingFile("apilib.mustache", libFolder, "api.dart"));
+        supportingFiles.add(new SupportingFile("api_exports.mustache", libFolder, "api_exports.dart"));
 
         final String authFolder = sourceFolder + File.separator + "lib" + File.separator + "auth";
         supportingFiles.add(new SupportingFile("auth/authentication.mustache", authFolder, "authentication.dart"));
@@ -285,6 +298,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("auth/http_bearer_auth.mustache", authFolder, "http_bearer_auth.dart"));
         supportingFiles.add(new SupportingFile("auth/api_key_auth.mustache", authFolder, "api_key_auth.dart"));
         supportingFiles.add(new SupportingFile("auth/oauth.mustache", authFolder, "oauth.dart"));
+
         supportingFiles.add(new SupportingFile("git_push.sh.mustache", "", "git_push.sh"));
         supportingFiles.add(new SupportingFile("gitignore.mustache", "", ".gitignore"));
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
@@ -451,7 +465,29 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     @Override
     public Map<String, Object> postProcessModels(Map<String, Object> objs) {
-        return postProcessModelsEnum(objs);
+        objs = super.postProcessModels(objs);
+        List<Object> models = (List<Object>) objs.get("models");
+        ProcessUtils.addIndexToProperties(models, 1);
+
+        for (Object _mo : models) {
+            Map<String, Object> mo = (Map<String, Object>) _mo;
+            Set<String> modelImports = new HashSet<>();
+            CodegenModel cm = (CodegenModel) mo.get("model");
+            for (String modelImport : cm.imports) {
+                if (importMapping.containsKey(modelImport)) {
+                    modelImports.add(importMapping.get(modelImport));
+                } else {
+                    if (!modelToIgnore.contains(modelImport.toLowerCase(Locale.ROOT))) {
+                        modelImports.add("package:" + pubName + "/model/" + underscore(modelImport) + ".dart");
+                    }
+                }
+            }
+
+            cm.imports = modelImports;
+            boolean hasVars =  cm.vars.size() > 0;
+            cm.vendorExtensions.put("x-has-vars", hasVars);
+        }
+        return objs;
     }
 
     @Override
@@ -636,5 +672,35 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
                 LOGGER.error("Error running the command ({}). Exception: {}", command, e.getMessage());
             }
         }
+    }
+
+    @Override
+    public Map<String, Object> postProcessOperationsWithModels(Map<String, Object> objs, List<Object> allModels) {
+        objs = super.postProcessOperationsWithModels(objs, allModels);
+        Map<String, Object> operations = (Map<String, Object>) objs.get("operations");
+        List<CodegenOperation> operationList = (List<CodegenOperation>) operations.get("operation");
+
+        Set<String> modelImports = new HashSet<>();
+        Set<String> fullImports = new HashSet<>();
+
+        for (CodegenOperation op : operationList) {
+
+            Set<String> imports = new HashSet<>();
+            for (String item : op.imports) {
+                if (!modelToIgnore.contains(item.toLowerCase(Locale.ROOT))) {
+                    imports.add(underscore(item));
+                } else if (item.equalsIgnoreCase("Uint8List")) {
+                    fullImports.add("dart:typed_data");
+                }
+            }
+            modelImports.addAll(imports);
+            op.imports = imports;
+
+        }
+
+        objs.put("modelImports", modelImports);
+        objs.put("fullImports", fullImports);
+
+        return objs;
     }
 }

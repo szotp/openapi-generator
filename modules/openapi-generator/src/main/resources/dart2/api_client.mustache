@@ -1,11 +1,19 @@
-part of {{pubName}}.api;
+import 'dart:convert';
 
-class QueryParam {
-  String name;
-  String value;
+import 'package:http/http.dart';
+import 'auth/api_key_auth.dart';
+import 'auth/authentication.dart';
+import 'auth/oauth.dart';
+import 'api_exception.dart';
+import 'api_helper.dart';
 
-  QueryParam(this.name, this.value);
-}
+{{#models}}
+    {{#model}}
+        import 'model/{{classFilename}}.dart';
+    {{/model}}
+{{/models}}
+
+ApiClient defaultApiClient = ApiClient();
 
 class ApiClient {
 

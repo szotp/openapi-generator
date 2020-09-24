@@ -1,12 +1,11 @@
-part of {{pubName}}.api;
+// ignore: unused_import
+import 'package:meta/meta.dart';
 
 {{#models}}
-{{#model}}
-{{#isEnum}}
-{{>enum}}
-{{/isEnum}}
-{{^isEnum}}
-{{>class}}
-{{/isEnum}}
-{{/model}}
+    {{#model}}
+        {{#imports}}
+            import '{{.}}';
+        {{/imports}}
+        {{#isEnum}}{{>enum}}{{/isEnum}}{{^isEnum}}{{>class}}{{/isEnum}}
+    {{/model}}
 {{/models}}
