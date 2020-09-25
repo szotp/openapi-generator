@@ -564,15 +564,14 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     @Override
     public String toEnumVarName(String value, String datatype) {
-        if (value.length() == 0) {
-            return "empty";
+        String result = camelize(value, true);
+        result = super.toEnumVarName(value, datatype);
+
+        if (result.startsWith("_")) {
+            result = "number".concat(result.substring(1));
         }
-        String var = value.replaceAll("\\W+", "_");
-        if ("number".equalsIgnoreCase(datatype) ||
-                "int".equalsIgnoreCase(datatype)) {
-            var = "Number" + var;
-        }
-        return escapeReservedWord(camelize(var, true));
+
+        return result;
     }
 
     @Override
