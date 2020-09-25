@@ -8,11 +8,9 @@ import 'auth/oauth.dart';
 import 'api_exception.dart';
 import 'api_helper.dart';
 
-{{#models}}
-    {{#model}}
-        import 'model/{{classFilename}}.dart';
-    {{/model}}
-{{/models}}
+{{#models}}{{#model}}
+import 'model/{{classFilename}}.dart';
+{{/model}}{{/models}}
 
 ApiClient defaultApiClient = ApiClient();
 

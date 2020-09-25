@@ -53,7 +53,12 @@ class {{classname}} {
       ).toList();
     {{/items.isListContainer}}
     {{^items.isListContainer}}
-      {{complexType}}.listFromJson(json['{{baseName}}']);
+        {{#items.complexType}}
+            {{items.complexType}}.listFromJson(json['{{baseName}}'])
+        {{/items.complexType}}
+        {{^items.complexType}}
+            array as List;
+        {{/items.complexType}}
     {{/items.isListContainer}}
       {{/isListContainer}}
       {{^isListContainer}}
@@ -66,7 +71,13 @@ class {{classname}} {
       {{^items.isListContainer}}
     {{name}} = (json['{{baseName}}'] == null) ?
       null :
-      {{complexType}}.mapFromJson(json['{{baseName}}']);
+    {{#items.complexType}}
+        {{items.complexType}}.mapFromJson(json['{{baseName}}']);
+    {{/items.complexType}}
+    {{^items.complexType}}
+        json['{{baseName}}'];
+    {{/items.complexType}}
+
       {{/items.isListContainer}}
       {{/isMapContainer}}
       {{^isMapContainer}}
@@ -102,7 +113,7 @@ class {{classname}} {
     {{name}} = json['{{baseName}}'];
     {{/isEnum}}
     {{#isEnum}}
-    {{name}} = {{classname}}{{{enumName}}}.fromJson(json['{{baseName}}']);
+    {{name}} = {{{enumName}}}.fromJson(json['{{baseName}}']);
     {{/isEnum}}
           {{/isNumber}}
         {{/isMapContainer}}

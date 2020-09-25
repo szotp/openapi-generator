@@ -30,8 +30,15 @@ class {{classname}} {
     return value;
   }
 
-  static {{classname}} fromJson({{dataType}} value) {
-    return {{classname}}TypeTransformer().decode(value);
+  static {{classname}} fromJson({{dataType}} data) {
+    switch (data) {
+    {{#allowableValues}}
+        {{#enumVars}}
+            case {{{value}}}: return {{classname}}.{{{name}}};
+        {{/enumVars}}
+    {{/allowableValues}}
+    default: throw('Unknown enum value to decode: $data');
+    }
   }
 
   static List<{{classname}}> listFromJson(List<dynamic> json) {
@@ -41,20 +48,3 @@ class {{classname}} {
   }
 }
 
-class {{classname}}TypeTransformer {
-
-  dynamic encode({{classname}} data) {
-    return data.value;
-  }
-
-  {{classname}} decode(dynamic data) {
-    switch (data) {
-      {{#allowableValues}}
-        {{#enumVars}}
-      case {{{value}}}: return {{classname}}.{{{name}}};
-        {{/enumVars}}
-      {{/allowableValues}}
-      default: throw('Unknown enum value to decode: $data');
-    }
-  }
-}

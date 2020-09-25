@@ -30,31 +30,20 @@ class {{enumName}} {
     return value;
   }
 
-  static {{enumName}} fromJson({{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} value) {
-    return _{{enumName}}TypeTransformer().decode(value);
+  static {{enumName}} fromJson({{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} data) {
+    switch (data) {
+    {{#allowableValues}}
+        {{#enumVars}}
+            case {{{value}}}: return {{enumName}}.{{{name}}};
+        {{/enumVars}}
+    {{/allowableValues}}
+    default: return null;
+    }
   }
 
   static List<{{enumName}}> listFromJson(List<dynamic> json) {
     return json == null
       ? List<{{enumName}}>()
       : json.map((value) => {{enumName}}.fromJson(value)).toList();
-  }
-}
-
-class _{{enumName}}TypeTransformer {
-
-  dynamic encode({{enumName}} data) {
-    return data.value;
-  }
-
-  {{enumName}} decode(dynamic data) {
-    switch (data) {
-    {{#allowableValues}}
-      {{#enumVars}}
-      case {{{value}}}: return {{enumName}}.{{{name}}};
-      {{/enumVars}}
-    {{/allowableValues}}
-      default: return null;
-    }
   }
 }
