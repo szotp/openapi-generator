@@ -1,19 +1,19 @@
-class {{classname}}{{enumName}} {
+class {{enumName}} {
   /// The underlying value of this enum member.
-  final {{{dataType}}} value;
+  final {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} value;
 
-  const {{classname}}{{enumName}}._internal(this.value);
+  const {{enumName}}._internal(this.value);
 
   {{#allowableValues}}
   {{#enumVars}}
   {{#description}}
   /// {{description}}
   {{/description}}
-  static const {{classname}}{{enumName}} {{name}} = {{classname}}{{enumName}}._internal({{{value}}});
+  static const {{enumName}} {{name}} = {{enumName}}._internal({{{value}}});
   {{/enumVars}}
   {{/allowableValues}}
 
-  static List<{{classname}}{{enumName}}> get values => const [
+  static List<{{enumName}}> get values => const [
     {{#allowableValues}}
       {{#enumVars}}
         {{{name}}},
@@ -21,7 +21,7 @@ class {{classname}}{{enumName}} {
     {{/allowableValues}}
       ];
 
-  {{{dataType}}} toJson () {
+{{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} toJson () {
     return value;
   }
 
@@ -30,28 +30,28 @@ class {{classname}}{{enumName}} {
     return value;
   }
 
-  static {{classname}}{{enumName}} fromJson({{{dataType}}} value) {
-    return {{classname}}{{enumName}}TypeTransformer().decode(value);
+  static {{enumName}} fromJson({{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} value) {
+    return _{{enumName}}TypeTransformer().decode(value);
   }
 
-  static List<{{classname}}{{enumName}}> listFromJson(List<dynamic> json) {
+  static List<{{enumName}}> listFromJson(List<dynamic> json) {
     return json == null
-      ? List<{{classname}}{{enumName}}>()
-      : json.map((value) => {{classname}}{{enumName}}.fromJson(value)).toList();
+      ? List<{{enumName}}>()
+      : json.map((value) => {{enumName}}.fromJson(value)).toList();
   }
 }
 
-class {{classname}}{{enumName}}TypeTransformer {
+class _{{enumName}}TypeTransformer {
 
-  dynamic encode({{classname}}{{enumName}} data) {
+  dynamic encode({{enumName}} data) {
     return data.value;
   }
 
-  {{classname}}{{enumName}} decode(dynamic data) {
+  {{enumName}} decode(dynamic data) {
     switch (data) {
     {{#allowableValues}}
       {{#enumVars}}
-      case {{{value}}}: return {{classname}}{{enumName}}.{{{name}}};
+      case {{{value}}}: return {{enumName}}.{{{name}}};
       {{/enumVars}}
     {{/allowableValues}}
       default: return null;

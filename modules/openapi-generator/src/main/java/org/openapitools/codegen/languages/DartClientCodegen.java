@@ -75,6 +75,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         modelToIgnore.add("list");
         modelToIgnore.add("file");
         modelToIgnore.add("uint8list");
+        modelToIgnore.add("set");
     }
 
     public DartClientCodegen() {
@@ -146,6 +147,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         typeMapping = new HashMap<>();
         typeMapping.put("Array", "List");
         typeMapping.put("array", "List");
+        typeMapping.put("set", "List");
         typeMapping.put("List", "List");
         typeMapping.put("boolean", "bool");
         typeMapping.put("string", "String");
@@ -480,6 +482,14 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
                     if (!modelToIgnore.contains(modelImport.toLowerCase(Locale.ROOT))) {
                         modelImports.add("package:" + pubName + "/model/" + underscore(modelImport) + ".dart");
                     }
+                }
+            }
+
+            for (CodegenProperty var : cm.vars) {
+                if (var.isEnum) {
+                    final String newName = cm.classname + var.enumName;
+                    var.datatypeWithEnum = var.datatypeWithEnum.replace(var.enumName, newName);
+                    var.enumName = newName;
                 }
             }
 

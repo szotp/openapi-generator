@@ -6,7 +6,7 @@ class {{classname}} {
   {{/isEnum}}
   {{#isEnum}}
   {{#allowableValues}}
-  {{#min}} // range from {{min}} to {{max}}{{/min}}{{classname}}{{{enumName}}} {{name}}{{#required}} = {{{defaultValue}}}{{/required}}{{^required}}{{/required}};
+  {{#min}} // range from {{min}} to {{max}}{{/min}}{{{datatypeWithEnum}}} {{name}}{{#required}} = {{{defaultValue}}}{{/required}}{{^required}}{{/required}};
   {{/allowableValues}}
   {{/isEnum}}
   {{/vars}}
@@ -78,9 +78,12 @@ class {{classname}} {
     {{/complexType}}
     {{^complexType}}
       {{#isListContainer}}
-    {{name}} = (json['{{baseName}}'] == null) ?
-      null :
-      (json['{{baseName}}'] as List).cast<{{items.datatype}}>();
+          {{#isEnum}}
+              {{name}} = {{enumName}}.listFromJson(json['{{baseName}}'] as List);
+          {{/isEnum}}
+          {{^isEnum}}
+              {{name}} = (json['{{baseName}}'] as List)?.cast<{{items.datatype}}>();
+          {{/isEnum}}
       {{/isListContainer}}
       {{^isListContainer}}
         {{#isMapContainer}}
@@ -128,7 +131,7 @@ class {{classname}} {
       json['{{baseName}}'] = {{name}};
       {{/isEnum}}
       {{#isEnum}}
-      json['{{baseName}}'] = {{name}}.value;
+      json['{{baseName}}'] = {{name}};
       {{/isEnum}}
       {{/isDate}}
       {{/isDateTime}}

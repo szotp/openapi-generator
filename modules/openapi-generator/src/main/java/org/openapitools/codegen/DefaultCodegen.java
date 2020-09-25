@@ -4538,7 +4538,7 @@ public class DefaultCodegen implements CodegenConfig {
     }
 
     protected boolean isReservedWord(String word) {
-        return word != null && reservedWords.contains(word.toLowerCase(Locale.ROOT));
+        return word != null && reservedWords.contains(word);
     }
 
     /**
