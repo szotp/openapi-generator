@@ -1,9 +1,11 @@
-import '../api_exports.dart';
+// ignore_for_file: unused_import, prefer_final_locals, prefer_interpolation_to_compose_strings, directives_ordering, curly_braces_in_flow_control_structures
 
 {{#modelImports}}import 'package:{{pubName}}/model/{{.}}.dart';
 {{/modelImports}}
 {{#fullImports}}import '{{.}}';
 {{/fullImports}}
+
+import '../api_exports.dart';
 
 {{#operations}}
 
@@ -17,7 +19,7 @@ class {{classname}} {
   /// {{summary}} with HTTP info returned
   ///
   /// {{notes}}
-  {{#returnType}}Future<Response> {{/returnType}}{{^returnType}}Future {{/returnType}}{{nickname}}WithHttpInfo({{#allParams}}{{#required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}{{#hasOptionalParams}}{ {{#allParams}}{{^required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}} }{{/hasOptionalParams}}) async {
+  Future<Response>{{nickname}}WithHttpInfo({{#allParams}}{{#required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}{{#hasOptionalParams}}{ {{#allParams}}{{^required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}} }{{/hasOptionalParams}}) async {
     Object postBody{{#bodyParam}} = {{paramName}}{{/bodyParam}};
 
     // verify required params are set
@@ -30,12 +32,12 @@ class {{classname}} {
     {{/allParams}}
 
     // create path and map variables
-    String path = "{{{path}}}".replaceAll("{format}","json"){{#pathParams}}.replaceAll("{" + "{{baseName}}" + "}", {{{paramName}}}.toString()){{/pathParams}};
+    final String path = "{{{path}}}".replaceAll("{format}","json"){{#pathParams}}.replaceAll("{" + "{{baseName}}" + "}", {{{paramName}}}.toString()){{/pathParams}};
 
     // query params
-    List<QueryParam> queryParams = [];
-    Map<String, String> headerParams = {};
-    Map<String, String> formParams = {};
+      final List<QueryParam> queryParams = [];
+      final Map<String, String> headerParams = {};
+      final Map<String, String> formParams = {};
     {{#queryParams}}
     {{^required}}
     if({{paramName}} != null) {
@@ -49,13 +51,13 @@ class {{classname}} {
     headerParams["{{baseName}}"] = {{paramName}};
     {{/headerParams}}
 
-    List<String> contentTypes = [{{#consumes}}"{{{mediaType}}}"{{#hasMore}},{{/hasMore}}{{/consumes}}];
+      final List<String> contentTypes = [{{#consumes}}"{{{mediaType}}}"{{#hasMore}},{{/hasMore}}{{/consumes}}];
 
-    String nullableContentType = contentTypes.isNotEmpty ? contentTypes[0] : null;
-    List<String> authNames = [{{#authMethods}}"{{name}}"{{#hasMore}}, {{/hasMore}}{{/authMethods}}];
+      final String nullableContentType = contentTypes.isNotEmpty ? contentTypes[0] : null;
+    const List<String> authNames = [{{#authMethods}}"{{name}}"{{#hasMore}}, {{/hasMore}}{{/authMethods}}];
 
     if(nullableContentType != null && nullableContentType.startsWith("multipart/form-data")) {
-      bool hasFields = false;
+      var hasFields = false;
       MultipartRequest mp = MultipartRequest(null, null);
       {{#formParams}}
       {{^isFile}}
@@ -72,8 +74,10 @@ class {{classname}} {
       }
       {{/isFile}}
       {{/formParams}}
-      if(hasFields)
-        postBody = mp;
+      if(hasFields) {
+      postBody = mp;
+        }
+
     }
     else {
       {{#formParams}}
@@ -84,7 +88,7 @@ class {{classname}} {
       {{/formParams}}
     }
 
-    var response = await apiClient.invokeAPI(path,
+    final response = await apiClient.invokeAPI(path,
                                              '{{httpMethod}}',
                                              queryParams,
                                              postBody,
@@ -103,27 +107,11 @@ class {{classname}} {
   {{/allParams}}
   /// {{notes}}
   {{#returnType}}Future<{{{returnType}}}> {{/returnType}}{{^returnType}}Future {{/returnType}}{{nickname}}({{#allParams}}{{#required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}{{#hasOptionalParams}}{ {{#allParams}}{{^required}}{{{dataType}}} {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}} }{{/hasOptionalParams}}) async {
-    Response response = await {{nickname}}WithHttpInfo({{#allParams}}{{#required}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}{{#hasOptionalParams}} {{#allParams}}{{^required}}{{paramName}}: {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}} {{/hasOptionalParams}});
+      final Response response = await {{nickname}}WithHttpInfo({{#allParams}}{{#required}}{{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}}{{#hasOptionalParams}} {{#allParams}}{{^required}}{{paramName}}: {{paramName}}{{#hasMore}}, {{/hasMore}}{{/required}}{{/allParams}} {{/hasOptionalParams}});
     if(response.statusCode >= 400) {
       throw ApiException(response.statusCode, decodeBodyBytes(response));
     } else if(response.body != null) {
-      {{#isListContainer}}
-        {{#returnType}}
-      return (apiClient.deserialize(decodeBodyBytes(response), '{{{returnType}}}') as List).map((item) => item as {{returnBaseType}}).toList();
-        {{/returnType}}
-      {{/isListContainer}}
-      {{^isListContainer}}
-        {{#isMapContainer}}
-          {{#returnType}}
-      return {{{returnType}}}.from(apiClient.deserialize(decodeBodyBytes(response), '{{{returnType}}}'));
-          {{/returnType}}
-        {{/isMapContainer}}
-        {{^isMapContainer}}
-          {{#returnType}}
-      return apiClient.deserialize(decodeBodyBytes(response), '{{{returnType}}}') as {{{returnType}}};
-          {{/returnType}}
-        {{/isMapContainer}}
-      {{/isListContainer}}
+        return {{{vendorExtensions.x-deserializer}}};
     } else {
       return{{#returnType}} null{{/returnType}};
     }

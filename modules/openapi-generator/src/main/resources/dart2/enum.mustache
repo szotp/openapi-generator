@@ -1,4 +1,4 @@
-class {{classname}} {
+class {{classname}} implements JsonEnum {
   /// The underlying value of this enum member.
   final {{dataType}} value;
 
@@ -9,7 +9,7 @@ class {{classname}} {
       {{#description}}
   /// {{description}}
       {{/description}}
-  static const {{classname}} {{{name}}} = {{classname}}._internal({{value}});
+  static const {{classname}} {{{name}}} = {{classname}}._internal({{{value}}});
     {{/enumVars}}
   {{/allowableValues}}
 
@@ -21,6 +21,7 @@ class {{classname}} {
     {{/allowableValues}}
       ];
 
+@override
   {{dataType}} toJson () {
     return value;
   }
@@ -37,14 +38,8 @@ class {{classname}} {
             case {{{value}}}: return {{classname}}.{{{name}}};
         {{/enumVars}}
     {{/allowableValues}}
-    default: throw('Unknown enum value to decode: $data');
+    default: throw Exception('Unknown enum value to decode: $data');
     }
-  }
-
-  static List<{{classname}}> listFromJson(List<dynamic> json) {
-    return json == null
-        ? List<{{classname}}>()
-        : json.map((value) => {{classname}}.fromJson(value)).toList();
   }
 }
 

@@ -23,6 +23,7 @@ import io.swagger.v3.oas.models.media.Schema;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.javascript.optimizer.Codegen;
 import org.openapitools.codegen.*;
 import org.openapitools.codegen.meta.features.*;
 import org.openapitools.codegen.utils.ModelUtils;
@@ -76,6 +77,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         modelToIgnore.add("file");
         modelToIgnore.add("uint8list");
         modelToIgnore.add("set");
+        modelToIgnore.add("multipartfile");
     }
 
     public DartClientCodegen() {
@@ -292,7 +294,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("api_exception.mustache", libFolder, "api_exception.dart"));
         supportingFiles.add(new SupportingFile("api_helper.mustache", libFolder, "api_helper.dart"));
         supportingFiles.add(new SupportingFile("apilib.mustache", libFolder, "api.dart"));
-        supportingFiles.add(new SupportingFile("api_exports.mustache", libFolder, "api_exports.dart"));
+        supportingFiles.add(new SupportingFile("api_exports.dart", libFolder, "api_exports.dart"));
 
         final String authFolder = sourceFolder + File.separator + "lib" + File.separator + "auth";
         supportingFiles.add(new SupportingFile("auth/authentication.mustache", authFolder, "authentication.dart"));
@@ -305,11 +307,16 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         supportingFiles.add(new SupportingFile("gitignore.mustache", "", ".gitignore"));
         supportingFiles.add(new SupportingFile("README.mustache", "", "README.md"));
         supportingFiles.add(new SupportingFile("travis.mustache", "", ".travis.yml"));
+        supportingFiles.add(new SupportingFile("analysis_options.yaml", "", "analysis_options.yaml"));
     }
 
     @Override
     public String escapeReservedWord(String name) {
-        return name + "_";
+        if (reservedWords.contains(name)) {
+            return name + "_";
+        } else {
+            return name;
+        }
     }
 
     @Override
@@ -465,9 +472,76 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         return toModelName(type);
     }
 
+    String getDeserializer3(CodegenOperation p, String parameter) {
+        if (p.returnBaseType.equals("Object")) {
+            return parameter;
+        }
+
+        if (!p.returnTypeIsPrimitive) {
+            return p.returnBaseType + ".fromJson(" + parameter + " as Map<String, dynamic>)";
+        } else {
+            return parameter + " as " + p.returnBaseType;
+        }
+    }
+
+    String getDeserializer2(CodegenOperation p, String parameter) {
+        if (p.returnType == null || p.returnType.equals("MultipartFile")) {
+            return "null";
+        }
+
+
+        if (p.isListContainer) {
+            final String inner = getDeserializer3(p, "x");
+            return "(" + parameter + " as List)" + "?.map((x) => "+ inner +")?.toList()";
+        }
+
+        if (p.isMapContainer) {
+            final String inner = getDeserializer3(p, "x");
+            return "(" + parameter + " as Map)?.map((key, x) => MapEntry(key as String, " + inner + "))";
+        }
+
+        return getDeserializer3(p, parameter);
+    }
+
+    String getDeserializer(CodegenProperty p, String parameter) {
+        if (p.isEnum) {
+            if (p.isListContainer) {
+                final String inner = p.enumName + ".fromJson(x" + " as " + p.items.dataType +")";
+                return "(" + parameter + "as List)" + "?.map((x) => "+ inner + ")?.toList()";
+            } else {
+                return p.enumName + ".fromJson(" + parameter + " as " + p.dataType + ")";
+            }
+        }
+
+        if (p.isListContainer) {
+            final String inner = getDeserializer(p.items, "x");
+            return "(" + parameter + " as List)" + "?.map((x) => "+ inner +")?.toList()";
+        }
+
+        if (p.isMapContainer) {
+            final String inner = getDeserializer(p.items, "x");
+            return "(" + parameter + " as Map)?.map((key, x) => MapEntry(key as String, " + inner + "))";
+        }
+
+        if (p.isDateTime) {
+            return "dateTimeCodec.decode(" + parameter + ")";
+        }
+
+        if (p.complexType != null) {
+            if (p.complexType.equals("MultipartFile")) {
+                return "null";
+            }
+
+            return p.complexType + ".fromJson(" + parameter + " as Map<String, dynamic>)";
+        }
+
+        return parameter + " as " + p.dataType;
+    }
+
     @Override
     public Map<String, Object> postProcessModels(Map<String, Object> objs) {
         objs = super.postProcessModels(objs);
+        objs = postProcessModelsEnum(objs);
         List<Object> models = (List<Object>) objs.get("models");
         ProcessUtils.addIndexToProperties(models, 1);
 
@@ -485,12 +559,18 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
                 }
             }
 
+
             for (CodegenProperty var : cm.vars) {
                 if (var.isEnum) {
+                    if (var.isListContainer) {
+
+                    }
                     final String newName = cm.classname + var.enumName;
                     var.datatypeWithEnum = var.datatypeWithEnum.replace(var.enumName, newName);
                     var.enumName = newName;
                 }
+
+                var.vendorExtensions.put("x-deserializer", getDeserializer(var, "json['"+ var.name + "']"));
             }
 
             cm.imports = modelImports;
@@ -524,6 +604,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         if (!cm.isEnum || cm.allowableValues == null) {
             return false;
         }
+
         Map<String, Object> allowableValues = cm.allowableValues;
         List<Object> values = (List<Object>) allowableValues.get("values");
         List<Map<String, Object>> enumVars = buildEnumVars(values, cm.dataType);
@@ -564,12 +645,19 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
 
     @Override
     public String toEnumVarName(String value, String datatype) {
-        String result = camelize(value, true);
-        result = super.toEnumVarName(value, datatype);
+        String result = value;
 
-        if (result.startsWith("_")) {
-            result = "number".concat(result.substring(1));
+        if (result.toUpperCase().equals(result)) {
+            result = result.toLowerCase();
         }
+
+        result = camelize(result, true);
+
+        if (result.matches("\\d.*")) {
+            result = "number" + result;
+        }
+
+        result = escapeReservedWord(result);
 
         return result;
     }
@@ -693,6 +781,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         Set<String> fullImports = new HashSet<>();
 
         for (CodegenOperation op : operationList) {
+            op.vendorExtensions.put("x-deserializer", getDeserializer2(op, "decodeBody(response)"));
 
             Set<String> imports = new HashSet<>();
             for (String item : op.imports) {

@@ -1,0 +1,83 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Dart Test Schema",
+    "description": "This is a test schema which exercises Swagger schema features for testing the dart language codegen module.",
+    "termsOfService": "These are the dummy Terms of Service for the dart test schema.",
+    "contact": {
+        "name": "John Doe",
+        "url": "http://www.example.com",
+        "email": "jdoe@example.com"
+    },
+    "license": {
+        "name": "This is the license name for the swift4 test schema.",
+        "url": "http://www.example.com"
+    },
+    "version": "1.0"
+  },
+  "host": "api.example.com",
+  "basePath": "/basePath",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+      "application/json"
+  ],
+  "produces": [
+      "application/json"
+  ],
+  "tags": [
+    {
+      "name": "DartTest"
+    }
+  ],
+  "externalDocs": {
+      "description": "Look in this doc for further information.",
+      "url": "https://www.example.com/doc/index.html"
+  },
+  "paths": {},
+  "definitions": {
+    "StandaloneEnum": {
+      "type": "string",
+      "enum": [
+        "UPPER_CASE_1",
+        "UPPER_CASE_2"
+      ]
+    },
+    "AdditionalProperties": {
+      "properties": {
+        "map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "array": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "enumProperty": {
+          "type": "string",
+          "enum": [
+            "UPPER_CASE_1",
+            "UPPER_CASE_2"
+          ]
+        },
+        "arrayEnumProperty": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "UPPER_CASE_1",
+              "UPPER_CASE_2"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,14 +4,15 @@ import 'authentication.dart';
 class HttpBearerAuth implements Authentication {
   dynamic _accessToken;
 
-  HttpBearerAuth() { }
+  HttpBearerAuth();
 
   @override
   void applyToParams(List<QueryParam> queryParams, Map<String, String> headerParams) {
+    final _accessToken = this._accessToken;
     if (_accessToken is String) {
-      headerParams["Authorization"] = "Bearer " + _accessToken;
+    headerParams["Authorization"] = "Bearer $_accessToken";
     } else if (_accessToken is String Function()){
-      headerParams["Authorization"] = "Bearer " + _accessToken();
+    headerParams["Authorization"] = "Bearer ${_accessToken()}";
     } else {
       throw ArgumentError('Type of Bearer accessToken should be String or String Function().');
     }
@@ -21,6 +22,6 @@ class HttpBearerAuth implements Authentication {
     if (!((accessToken is String) | (accessToken is String Function()))){
       throw ArgumentError('Type of Bearer accessToken should be String or String Function().');
     } 
-    this._accessToken = accessToken;
+    _accessToken = accessToken;
   }
 }

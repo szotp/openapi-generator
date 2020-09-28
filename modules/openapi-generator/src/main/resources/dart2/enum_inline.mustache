@@ -1,4 +1,4 @@
-class {{enumName}} {
+class {{enumName}} implements JsonEnum {
   /// The underlying value of this enum member.
   final {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} value;
 
@@ -21,6 +21,7 @@ class {{enumName}} {
     {{/allowableValues}}
       ];
 
+@override
 {{^isContainer}}{{dataType}}{{/isContainer}}{{#isContainer}}String{{/isContainer}} toJson () {
     return value;
   }
@@ -39,11 +40,5 @@ class {{enumName}} {
     {{/allowableValues}}
     default: return null;
     }
-  }
-
-  static List<{{enumName}}> listFromJson(List<dynamic> json) {
-    return json == null
-      ? List<{{enumName}}>()
-      : json.map((value) => {{enumName}}.fromJson(value)).toList();
   }
 }
