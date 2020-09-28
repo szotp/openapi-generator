@@ -524,7 +524,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         }
 
         if (p.isDateTime) {
-            return "dateTimeCodec.decode(" + parameter + ")";
+            return "decodeDateTime(" + parameter + ")";
         }
 
         if (p.complexType != null) {

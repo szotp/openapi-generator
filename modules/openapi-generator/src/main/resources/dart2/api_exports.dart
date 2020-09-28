@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 export 'package:http/http.dart';
 export 'package:meta/meta.dart';
 
@@ -10,5 +8,3 @@ export 'auth/api_key_auth.dart';
 export 'auth/authentication.dart';
 export 'auth/http_basic_auth.dart';
 export 'auth/oauth.dart';
-
-Codec<DateTime, dynamic> dateTimeCodec;

@@ -45,9 +45,11 @@ Iterable<QueryParam> convertParametersForCollectionFormat(
   return params;
 }
 
-            abstract class JsonEnum {
-                dynamic toJson();
+            abstract class JsonModel {
+            dynamic toJson();
             }
+
+            abstract class JsonEnum implements JsonModel { }
 
 /// Format the given parameter object into string.
 String parameterToString(dynamic value) {

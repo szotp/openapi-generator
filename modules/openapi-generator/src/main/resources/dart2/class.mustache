@@ -1,6 +1,6 @@
-// ignore_for_file: constant_identifier_names, prefer_null_aware_operators, non_constant_identifier_names
 
-class {{classname}} {
+
+class {{classname}} implements JsonModel{
   {{#vars}}
   {{#description}}/// {{{description}}}{{/description}}
   {{^isEnum}}
@@ -19,10 +19,6 @@ class {{classname}} {
   {{/vars}}
   });
 
-  @override
-  String toString() {
-    return '{{classname}}[{{#vars}}{{name}}=${{name}}, {{/vars}}]';
-  }
 
   // ignore: prefer_constructors_over_static_methods
   static {{classname}} fromJson(Map<String, dynamic> json) {
@@ -34,6 +30,7 @@ class {{classname}} {
     return r;
   }
 
+    @override
   Map<String, dynamic> toJson() {
     return {
 
@@ -42,10 +39,10 @@ class {{classname}} {
         if ({{name}} != null)
     {{/isNullable}}
     {{#isDateTime}}
-        '{{baseName}}': {{name}} == null ? null : {{name}}.toUtc().toIso8601String(),
+        '{{baseName}}': {{name}} == null ? null : encodeDateTime({{name}}),
     {{/isDateTime}}
     {{#isDate}}
-        '{{baseName}}': {{name}} == null ? null : _dateFormatter.format({{name}}.toUtc()),
+        '{{baseName}}': {{name}} == null ? null : encodeDateTime({{name}}),
     {{/isDate}}
     {{^isDateTime}}
         {{^isDate}}

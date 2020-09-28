@@ -1,10 +1,16 @@
-// ignore_for_file: empty_constructor_bodies
+// ignore_for_file: empty_constructor_bodies, prefer_function_declarations_over_variables
 
 import 'dart:convert';
 
 import 'api_exports.dart';
 
 ApiClient defaultApiClient = ApiClient();
+
+DateTime Function(dynamic json) decodeDateTime =
+(json) => DateTime.parse(json as String);
+
+dynamic Function(DateTime json) encodeDateTime =
+(date) => date.toIso8601String();
 
 class ApiClient {
 
