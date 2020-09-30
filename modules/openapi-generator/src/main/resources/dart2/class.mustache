@@ -23,11 +23,11 @@ class {{classname}} implements JsonModel{
   // ignore: prefer_constructors_over_static_methods
   static {{classname}} fromJson(Map<String, dynamic> json) {
     if (json == null) return null;
-    final r = {{classname}}();
+    return {{classname}}(
   {{#vars}}
-    r.{{name}} = {{{vendorExtensions.x-deserializer}}};
+    {{name}}: {{{vendorExtensions.x-deserializer}}},
   {{/vars}}
-    return r;
+    );
   }
 
     @override

@@ -507,7 +507,10 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         if (p.isEnum) {
             if (p.isListContainer) {
                 final String inner = p.enumName + ".fromJson(x" + " as " + p.items.dataType +")";
-                return "(" + parameter + "as List)" + "?.map((x) => "+ inner + ")?.toList()";
+                return "(" + parameter + " as List)" + "?.map((x) => "+ inner + ")?.toList()";
+            } else if(p.isMapContainer) {
+                final String inner = p.enumName + ".fromJson(x" + " as " + p.items.dataType +")";
+                return "(" + parameter + " as Map)?.map((key, x) => MapEntry(key as String, " + inner + "))";
             } else {
                 return p.enumName + ".fromJson(" + parameter + " as " + p.dataType + ")";
             }
@@ -528,7 +531,7 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
         }
 
         if (p.complexType != null) {
-            if (p.complexType.equals("MultipartFile")) {
+            if (p.complexType.equals("MultipartFile") || p.complexType.equals("File")) {
                 return "null";
             }
 
@@ -562,11 +565,14 @@ public class DartClientCodegen extends DefaultCodegen implements CodegenConfig {
 
             for (CodegenProperty var : cm.vars) {
                 if (var.isEnum) {
-                    if (var.isListContainer) {
-
-                    }
                     final String newName = cm.classname + var.enumName;
-                    var.datatypeWithEnum = var.datatypeWithEnum.replace(var.enumName, newName);
+
+                    if (var.isMapContainer && var.datatypeWithEnum.contains("InnerEnum")) {
+                        var.datatypeWithEnum = var.datatypeWithEnum.replace("InnerEnum", newName);
+                    } else {
+                        var.datatypeWithEnum = var.datatypeWithEnum.replace(var.enumName, newName);
+                    }
+
                     var.enumName = newName;
                 }
 
